@@ -1,0 +1,7 @@
+.DS_Store
+*ipynb* 
+__pycache__
+random_reports/
+*csv 
+*json
+*tar.gz
