@@ -148,7 +148,13 @@ def preprocess_report(report: str) -> Tuple[List[str], pd.DataFrame]:
     df.columns = map(str.lower, df.columns)
 
     # rename ref and alt alleles to match model
-    df = df.rename(columns={"ref": "reference_allele", "alt": "alt_allele"})
+    df = df.rename(
+        columns={
+            "ref": "reference_allele",
+            "alt": "alt_allele",
+            "ensembl_gene_id": "report_ensembl_gene_id",
+        }
+    )
 
     # convert variation values to lowercase
     df["variation"] = df["variation"].str.lower()

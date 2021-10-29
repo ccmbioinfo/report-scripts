@@ -69,7 +69,7 @@ def report_to_dict(csv_path: str) -> dict[str, any]:
         "gnomad_af_popmax",
         "gnomad_ac",
         "gnomad_hom",
-        "ensembl_gene_id",
+        "report_ensembl_gene_id",
         "ensembl_transcript_id",
         "aa_position",
         "exon",
