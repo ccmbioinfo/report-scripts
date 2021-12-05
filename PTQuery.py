@@ -83,7 +83,7 @@ class PTQuery:
 
     def clean_and_post_report(self, patient_id: str, report_path: str) -> str:
         """clean and post report for a patient, prints response status code"""
-        cleaned_path = clean_report(path)
+        cleaned_path = clean_report(report_path)
         filename = path.basename(cleaned_path)
         args = {
             "data": {
