@@ -1,6 +1,7 @@
 from json import dumps
 from os import path
 from re import sub
+from typing import Optional
 
 import requests
 import pandas as pd
@@ -113,7 +114,7 @@ class PTQuery:
         )
         return res.status_code
 
-    def get_latest_job_metadata_for_patient(
+    def get_job_metadata_for_patient(
         self, patient_id: str, complete=False, params={}
     ) -> str:
         """search metadata for participant's latest upload attempt"""
@@ -126,7 +127,7 @@ class PTQuery:
             params["procStatus"] = "COMPLETE"
 
         res = requests.get(
-            "http://staging-ccm.phenotips.genomics4rd.ca/rest/variant-source-files/metadata",
+            f"{self.base_url}/rest/variant-source-files/metadata",
             params=params,
             **self.base_request_args,
         )
@@ -142,13 +143,11 @@ class PTQuery:
         ]
 
         if found:
-            return found[0]["attributes"]
+            return [found["attributes"] for found in found]
         elif returned_record_count > 0:
             params["patientLimit"] += PAGE_SIZE
             params["patientOffset"] += PAGE_SIZE
-            return self.get_latest_job_metadata_for_patient(
-                patient_id, complete, params
-            )
+            return self.get_job_metadata_for_patient(patient_id, complete, params)
         else:
             raise Exception("NOT FOUND!")
 
@@ -170,6 +169,28 @@ class PTQuery:
             return res.json()["meta"]["returned"]
         else:
             return res.get("status_code", "unknown error")
+
+    def get_match(self, gene_name: str, ensembl_id: Optional[str] = None):
+        """
+        fetch a collection of matches for a given query
+        note that ensemblID is not required and won't have an affect on results
+        """
+        kwargs = {
+            **self.base_request_args,
+            "data": dumps(
+                {
+                    "gene": {"geneName": gene_name, "ensemblID": ensembl_id},
+                    "variant": {"maxFrequency": 0.05, "assemblyId": "GRCh37"},
+                }
+            ),
+            "headers": {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                **self.base_request_args["headers"],
+            },
+        }
+        res = requests.post(f"{self.base_url}/rest/variants/match", **kwargs)
+        return res.json()
 
 
 def rename_callset_fields(fieldName: str):
