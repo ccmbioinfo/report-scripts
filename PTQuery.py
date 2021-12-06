@@ -95,7 +95,7 @@ class PTQuery:
                     }
                 ),
             },
-            "files": {"fileStream": (None, open(report_path, "rb"))},
+            "files": {"fileStream": (None, open(cleaned_path, "rb"))},
             "timeout": 30,
             **self.base_request_args,
         }
