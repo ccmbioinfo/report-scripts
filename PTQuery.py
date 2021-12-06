@@ -157,7 +157,20 @@ class PTQuery:
             f"{self.base_url}/rest/patients/{patient_id}",
             **self.base_request_args,
         )
-        return res.json()["external_id"]
+        if res.ok:
+            return res.json()["external_id"]
+        else:
+            return res.status_code
+
+    def get_internal_id_by_external_id(self, eid: str) -> str:
+        """get patient's internal ID from external ID"""
+        res = requests.get(
+            f"{self.base_url}/rest/patients/eid/{eid}", **self.base_request_args
+        )
+        if res.ok:
+            return res.json()["id"]
+        else:
+            return res.status_code
 
     def get_variant_count(self, max=5000) -> str:
         """return count of all variants in the store up to max"""
