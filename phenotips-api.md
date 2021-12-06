@@ -117,7 +117,7 @@ url -v -u '<username>:<password>' \
 
 ### **Matching endpoint**
 
-This is a sample request to the matcing endpoint that passes internal validation. More details will be provided once sample responses are available.
+This is a sample request to the matching endpoint that passes internal validation. More details will be provided once sample responses are available.
 
 ```bash
 curl -X POST 'https://staging-ccm.phenotips.genomics4rd.ca/rest/variants/match' --header 'Accept: application/json' \
