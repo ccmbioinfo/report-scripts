@@ -77,10 +77,11 @@ class BearerAuth(requests.auth.AuthBase):
         r.headers["authorization"] = "Bearer " + self.token
         return r
 
+
 def get_bearer_token(data: dict) -> str:
     """
     get bearer token from g4rd auth0 instance
-    see: https://auth0.com/docs/authorization/flows/call-your-api-using-resource-owner-password-flow for appropriate shape of 'data' 
+    see: https://auth0.com/docs/authorization/flows/call-your-api-using-resource-owner-password-flow for appropriate shape of 'data'
     """
     url = "https://phenotips.auth0.com/oauth/token"
     headers = {"content-type": "application/x-www-form-urlencoded"}
@@ -88,7 +89,6 @@ def get_bearer_token(data: dict) -> str:
     res2 = loads(res.text)
 
     return res2["id_token"]
-
 
 
 class PTQuery:
@@ -100,7 +100,7 @@ class PTQuery:
         base_request_args: dict of kwargs to pass to the requests library. Should at minimum include {"headers": {"Authorization": <...>}}.
         username/password: Only used for staging instance as basic auth is used.
         bearer_token: Only used for production; the bearer token from auth0.
-        
+
     """
 
     def __init__(
@@ -213,7 +213,7 @@ class PTQuery:
         """remove a report from a patient record (usually b/c of error when uploading)"""
         res = requests.delete(
             f"{self.base_url}/rest/variant-source-files/patients/{patient_id}/files/{filename}",
-            self.request_auth,
+            auth=self.request_auth,
             **self.base_request_args,
         )
         return res.status_code
@@ -359,11 +359,9 @@ def clean_report(filepath: str) -> str:
     print(f"Extra Columns: {extra_cols}")
     report.drop(columns=extra_cols, inplace=True)
 
-
     saved_path = f"{path.splitext(filepath)[0]}-formatted.csv"
 
     with open(saved_path, "w") as f:
         f.write(report.to_csv(index=False))
 
     return saved_path
-
