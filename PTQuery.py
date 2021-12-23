@@ -86,8 +86,8 @@ def get_bearer_token(data: dict) -> str:
     url = "https://phenotips.auth0.com/oauth/token"
     headers = {"content-type": "application/x-www-form-urlencoded"}
     res = requests.post(url, data=data, headers=headers)
-    res2 = loads(res.text)
 
+    res2 = loads(res.text)
     return res2["id_token"]
 
 
@@ -256,15 +256,6 @@ class PTQuery:
         else:
             raise Exception("NOT FOUND!")
 
-    def delete_patient(self, patient_id: str):
-        res = requests.delete(
-            f"{self.base_url}/rest/patients/{patient_id}",
-            **self.base_request_args,
-            auth=self.request_auth,
-        )
-
-        return res.status_code
-
     def get_patient_external_id_by_internal_id(self, patient_id: str) -> str:
         """get the patient's external ID from the internal ID"""
         res = requests.get(
@@ -327,16 +318,41 @@ class PTQuery:
         )
         return res.json()
 
+    def get_variant_info(self, patient_id: str, params={}) -> str:
+        """
+        fetches a collection of variants for a given internal patient ID
+        """
 
-def rename_callset_fields(fieldName: str):
-    if (
-        fieldName.startswith("Zygosity.")
-        or fieldName.startswith("Burden.")
-        or fieldName.startswith("Alt_depths.")
-    ):
-        return sub("\..+", "", fieldName)
-    else:
-        return fieldName
+        if not params:
+
+            params = {
+                "offset": 0,
+                "limit": 1500,
+                "sort": "chrom::asc",
+                "sort": "pos::asc",
+                "filter": f"patient_ids::=::{patient_id}",
+            }
+
+        res = requests.get(
+            f"{self.base_url}/rest/variants/",
+            params=params,
+            **self.base_request_args,
+            auth=self.request_auth,
+        )
+        content = res.json().get("data")
+
+        returned_record_count = res.json()["meta"]["returned"]
+
+        if returned_record_count > 0:
+            found = [
+                record
+                for record in content
+                if patient_id in record["attributes"]["patient_ids"]
+            ]
+
+            return [found["attributes"] for found in found]
+        else:
+            return None
 
 
 def clean_report(filepath: str) -> str:

@@ -6,3 +6,5 @@ random_reports/
 *json
 *tar.gz
 .devcontainer
+archive/
+files/
