@@ -8,64 +8,64 @@ import pandas as pd
 
 """ headers, in order, from template singleton report """
 ALLOWED_FIELDS = [
-    "#Position",
-    "UCSC_Link",
-    "GNOMAD_Link",
-    "Ref",
-    "Alt",
-    "Zygosity",
-    "Gene",
-    "Burden",
+    "#position",
+    "ucsc_link",
+    "gnomad_link",
+    "ref",
+    "alt",
+    "zygosity",
+    "gene",
+    "burden",
     "gts",
-    "Variation",
-    "Info",
-    "Refseq_change",
-    "Depth",
-    "Quality",
-    "Alt_depths",
-    "Trio_coverage",
-    "Ensembl_gene_id",
-    "Gene_description",
+    "variation",
+    "info",
+    "refseq_change",
+    "depth",
+    "quality",
+    "alt_depths",
+    "trio_coverage",
+    "ensembl_gene_id",
+    "gene_description",
     "omim_phenotype",
     "omim_inheritance",
-    "Orphanet",
-    "Clinvar",
-    "Frequency_in_C4R",
-    "Seen_in_C4R_samples",
-    "HGMD_id",
-    "HGMD_gene",
-    "HGMD_tag",
-    "HGMD_ref",
-    "Gnomad_af_popmax",
-    "Gnomad_af",
-    "Gnomad_ac",
-    "Gnomad_hom",
-    "Ensembl_transcript_id",
-    "AA_position",
-    "Exon",
-    "Protein_domains",
-    "rsIDs",
-    "Gnomad_oe_lof_score",
-    "Gnomad_oe_mis_score",
-    "Exac_pli_score",
-    "Exac_prec_score",
-    "Exac_pnull_score",
-    "Conserved_in_20_mammals",
-    "SpliceAI_impact",
-    "SpliceAI_score",
-    "Sift_score",
-    "Polyphen_score",
-    "Cadd_score",
-    "Vest3_score",
-    "Revel_score",
-    "Gerp_score",
-    "Imprinting_status",
-    "Imprinting_expressed_allele",
-    "Pseudoautosomal",
-    "Number_of_callers",
-    "Old_multiallelic",
-    "UCE_100bp",
-    "UCE_200bp",
+    "orphanet",
+    "clinvar",
+    "frequency_in_c4r",
+    "seen_in_c4r_samples",
+    "hgmd_id",
+    "hgmd_gene",
+    "hgmd_tag",
+    "hgmd_ref",
+    "gnomad_af_popmax",
+    "gnomad_af",
+    "gnomad_ac",
+    "gnomad_hom",
+    "ensembl_transcript_id",
+    "aa_position",
+    "exon",
+    "protein_domains",
+    "rsids",
+    "gnomad_oe_lof_score",
+    "gnomad_oe_mis_score",
+    "exac_pli_score",
+    "exac_prec_score",
+    "exac_pnull_score",
+    "conserved_in_20_mammals",
+    "spliceai_impact",
+    "spliceai_score",
+    "sift_score",
+    "polyphen_score",
+    "cadd_score",
+    "vest3_score",
+    "revel_score",
+    "gerp_score",
+    "imprinting_status",
+    "imprinting_expressed_allele",
+    "pseudoautosomal",
+    "number_of_callers",
+    "old_multiallelic",
+    "uce_100bp",
+    "uce_200bp",
 ]
 
 
@@ -190,14 +190,17 @@ class PTQuery:
             "headers": {
                 "Content-Type": "application/json",
                 "Accept": "application/json",
-                **self.base_request_args["headers"],
+                **(
+                    {self.base_request_args.get("headers")}
+                    if self.base_request_args.get("headers")
+                    else {}
+                ),
             },
         }
 
         res = requests.post(
             f"{self.base_url}/rest/patients/", **kwargs, auth=self.request_auth
         )
-
         return res.status_code
 
     def delete_patient(self, patient_id: str) -> str:
@@ -339,7 +342,7 @@ class PTQuery:
             **self.base_request_args,
             auth=self.request_auth,
         )
-        content = res.json().get("data")
+        content = res.json().get("data", [])
 
         returned_record_count = res.json()["meta"]["returned"]
 
@@ -359,13 +362,7 @@ def clean_report(filepath: str) -> str:
     """assumes a singleton, cleans the report, saves it with a new name in the same directory, and returns new path"""
     report = pd.read_csv(filepath)
 
-    report.rename({"Position": "#Position"}, axis=1, inplace=True)
-
-    # quick fix for now since the demultiplexing script deals with this already
-    if "Zygosity" in report.columns:
-        report.loc[
-            (report["Zygosity"] != "Het") & (report["Zygosity"] != "Hom"), "Zygosity"
-        ] = None
+    report.rename({"position": "#position"}, axis=1, inplace=True)
 
     missing_cols = set(ALLOWED_FIELDS).difference(set(report.columns.values))
     print(f"Missing Columns: {missing_cols}")
