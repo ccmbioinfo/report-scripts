@@ -148,8 +148,7 @@ class PTQuery:
 
     def clean_and_post_report(self, patient_id: str, report_path: str) -> str:
         """clean and post report for a patient, prints response status code"""
-        cleaned_path = clean_report(report_path)
-        filename = path.basename(cleaned_path)
+        filename = path.basename(report_path)
         args = {
             "data": {
                 "metadata": dumps(
@@ -160,7 +159,7 @@ class PTQuery:
                     }
                 ),
             },
-            "files": {"fileStream": (None, open(cleaned_path, "rb"))},
+            "files": {"fileStream": (None, open(report_path, "rb"))},
             "timeout": 30,
             **self.base_request_args,
         }
@@ -259,6 +258,38 @@ class PTQuery:
         else:
             raise Exception("NOT FOUND!")
 
+    def get_all_job_metadata(self, params={}) -> list[dict]:
+        """paginates through all job metadata, saves and returns as a list of dictionaries. useful for sanity checking whether reports were successfully processed."""
+
+        PAGE_SIZE = 25
+        FLAG = 0
+        job_metadata = []
+        if not params:
+            params = {"patientLimit": PAGE_SIZE, "patientOffset": 0}
+
+        while FLAG == 0:
+
+            res = requests.get(
+                f"{self.base_url}/rest/variant-source-files/metadata",
+                params=params,
+                **self.base_request_args,
+                auth=self.request_auth,
+            )
+
+            total_count = res.json()["meta"]["total"]
+
+            dat = res.json().get("data", [])
+
+            job_metadata.extend(dat)
+
+            if len(job_metadata) < total_count:
+                params["patientLimit"] += PAGE_SIZE
+                params["patientOffset"] += PAGE_SIZE
+            else:
+                FLAG = 1
+
+        return job_metadata
+
     def get_patient_external_id_by_internal_id(self, patient_id: str) -> str:
         """get the patient's external ID from the internal ID"""
         res = requests.get(
@@ -295,7 +326,7 @@ class PTQuery:
         if res.ok:
             return res.json()["meta"]["returned"]
         else:
-            return res.get("status_code", "unknown error")
+            return res.json().get("status_code", "unknown error")
 
     def get_match(self, gene_name: str, ensembl_id: Optional[str] = None):
         """
@@ -330,7 +361,7 @@ class PTQuery:
 
             params = {
                 "offset": 0,
-                "limit": 1500,
+                "limit": 1000,
                 "sort": "chrom::asc",
                 "sort": "pos::asc",
                 "filter": f"patient_ids::=::{patient_id}",
@@ -356,25 +387,3 @@ class PTQuery:
             return [found["attributes"] for found in found]
         else:
             return None
-
-
-def clean_report(filepath: str) -> str:
-    """assumes a singleton, cleans the report, saves it with a new name in the same directory, and returns new path"""
-    report = pd.read_csv(filepath)
-
-    report.rename({"position": "#position"}, axis=1, inplace=True)
-
-    missing_cols = set(ALLOWED_FIELDS).difference(set(report.columns.values))
-    print(f"Missing Columns: {missing_cols}")
-    for col in missing_cols:
-        report[col] = None
-    extra_cols = set(report.columns.values).difference(set(ALLOWED_FIELDS))
-    print(f"Extra Columns: {extra_cols}")
-    report.drop(columns=extra_cols, inplace=True)
-
-    saved_path = f"{path.splitext(filepath)[0]}-formatted.csv"
-
-    with open(saved_path, "w") as f:
-        f.write(report.to_csv(index=False))
-
-    return saved_path
