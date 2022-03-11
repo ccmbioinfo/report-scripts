@@ -160,7 +160,7 @@ class PTQuery:
                 ),
             },
             "files": {"fileStream": (None, open(report_path, "rb"))},
-            "timeout": 30,
+            "timeout": 100,
             **self.base_request_args,
         }
         res = requests.put(
@@ -361,7 +361,7 @@ class PTQuery:
 
             params = {
                 "offset": 0,
-                "limit": 1000,
+                "limit": 10,
                 "sort": "chrom::asc",
                 "sort": "pos::asc",
                 "filter": f"patient_ids::=::{patient_id}",

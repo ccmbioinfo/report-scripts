@@ -67,6 +67,7 @@ PTQuery.get_patient_external_id_by_internal_id()
 PTQuery.get_variant_count()
 PTQuery.get_match()
 PTQuery.get_variant_info()
+PTQuery.get_all_job_metadata()
 ```
 #### Update 
 ```
