@@ -7,11 +7,14 @@ If you have a PhenoTips account (free and automated signup, not associated with 
 ### Endpoints
 
 The production endpoint for the PT G4RD instance is `https://phenotips.genomics4rd.ca/rest/`.
-The staging endpoint is `https://dev.phenotips.genomics4rd.ca/rest/`.
+
+The staging and PoC (proof-of-concept) endpoints are `http://staging-ccm.phenotips.genomics4rd.ca/rest/` and `http://staging-ccm.phenotips.genomics4rd.ca/rest/`, respectively. 
 
 Currently, the G4RD production PT instance does not have the variant or matching endpoints enabled.
-The staging instance is behind the CHEO-RI firewall and can be queried via the proxy host.
-Note that the staging endpoint uses basic auth, while the production endpoint requires an OAuth token (see below).
+The staging instance is behind the CHEO-RI firewall and can be queried via the proxy host. 
+Note that the staging and PoC instances uses basic auth, while the production endpoint requires an OAuth token (see below).
+
+
 
 ### Authentication
 
@@ -81,13 +84,13 @@ curl -X PUT
   --header 'Content-Type: multipart/form-data'  \
   -F 'metadata={"patientId":"P0000037","refGenome":"GRCh37","fileName":"sample-singleton-report.csv"}' \
   -F 'fileStream=@/path/to/sample-singleton-report.csv' \
-  'https://dev.phenotips.genomics4rd.ca/rest/variant-source-files/patients/P0000037/files/sample-singleton-report.csv'
+  'http://staging-ccm.phenotips.genomics4rd.ca/rest/variant-source-files/patients/P0000037/files/sample-singleton-report.csv'
 ```
 
 This endpoint will return a `200` if the the request was allowed into the processing job queue. However, this does not mean that the processing job was successful. You can check the status of a job by sending a GET request to the `/rest/variant-source-files/metadata` endpoint. Note that this endpoint returns statuses for all jobs, so you may need to page through results until you find the participant you are looking for.
 
 ```bash
-curl --header 'authorization: Basic <credentials>'  'https://dev.phenotips.genomics4rd.ca/rest/variant-source-files/metadata?patientOffset=25&patientLimit=25'
+curl --header 'authorization: Basic <credentials>'  'http://staging-ccm.phenotips.genomics4rd.ca/rest/variant-source-files/metadata?patientOffset=25&patientLimit=25'
 ```
 
 ### **Delete a file**
@@ -111,7 +114,7 @@ curl -v -u '<username>:<password>' \
   -d 'sort=pos::asc' \
   -d 'filter=patient_ids::=::P0000037' \
   -d 'filter=gene::=::ABCB5||EPX' \
-  'https://dev.phenotips.genomics4rd.ca/variants'
+  'http://staging-ccm.phenotips.genomics4rd.ca/rest/variants'
 
 ```
 
@@ -120,7 +123,7 @@ curl -v -u '<username>:<password>' \
 This is a sample request to the matching endpoint that passes internal validation. More details will be provided once sample responses are available.
 
 ```bash
-curl -X POST 'https://dev.phenotips.genomics4rd.ca/rest/variants/match' --header 'Accept: application/json' \
+curl -X POST 'http://staging-ccm.phenotips.genomics4rd.ca/rest/variants/match' --header 'Accept: application/json' \
 --header 'Authorization: <authheader> \
 --header 'Content-Type: application/json' \
 --data-raw '{
